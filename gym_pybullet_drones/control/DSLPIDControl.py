@@ -31,8 +31,8 @@ class DSLPIDControl(BaseControl):
 
         """
         super().__init__(drone_model=drone_model, g=g)
-        if self.DRONE_MODEL not in [DroneModel.CF2X, DroneModel.CF2P, DroneModel.SWARM_TEST]:
-            print("[ERROR] in DSLPIDControl.__init__(), DSLPIDControl requires DroneModel.CF2X, DroneModel.CF2P, or DroneModel.SWARM_TEST")
+        if self.DRONE_MODEL not in [DroneModel.CF2X, DroneModel.CF2P, DroneModel.SWARM_DRONE]:
+            print("[ERROR] in DSLPIDControl.__init__(), DSLPIDControl requires DroneModel.CF2X, DroneModel.CF2P, or DroneModel.SWARM_DRONE")
             exit()
         self.P_COEFF_FOR = np.array([.4, .4, 1.25])
         self.I_COEFF_FOR = np.array([.05, .05, .05])
@@ -58,7 +58,7 @@ class DSLPIDControl(BaseControl):
                                     [0,  1,  -1],
                                     [-1, 0, 1]
                                     ])
-        elif self.DRONE_MODEL == DroneModel.SWARM_TEST:
+        elif self.DRONE_MODEL == DroneModel.SWARM_DRONE:
             self.MIXER_MATRIX = np.array([
                                     [-.5, -.5, -1],
                                     [-.5,  .5,  1],

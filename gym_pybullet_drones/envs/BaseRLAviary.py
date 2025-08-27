@@ -72,7 +72,7 @@ class BaseRLAviary(BaseAviary):
         #### Create integrated controllers #########################
         if act in [ActionType.PID, ActionType.VEL, ActionType.ONE_D_PID]:
             os.environ['KMP_DUPLICATE_LIB_OK']='True'
-            if drone_model in [DroneModel.CF2X, DroneModel.CF2P, DroneModel.SWARM_TEST]:
+            if drone_model in [DroneModel.CF2X, DroneModel.CF2P, DroneModel.SWARM_DRONE]:
                 self.ctrl = [DSLPIDControl(drone_model=DroneModel.CF2X) for i in range(num_drones)]
             else:
                 print("[ERROR] in BaseRLAviary.__init()__, no controller is available for the specified drone_model")
