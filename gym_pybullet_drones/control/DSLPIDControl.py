@@ -34,12 +34,22 @@ class DSLPIDControl(BaseControl):
         if self.DRONE_MODEL not in [DroneModel.CF2X, DroneModel.CF2P, DroneModel.SWARM_DRONE]:
             print("[ERROR] in DSLPIDControl.__init__(), DSLPIDControl requires DroneModel.CF2X, DroneModel.CF2P, or DroneModel.SWARM_DRONE")
             exit()
+        # Default PID gains (CF2X values)
         self.P_COEFF_FOR = np.array([.4, .4, 1.25])
         self.I_COEFF_FOR = np.array([.05, .05, .05])
         self.D_COEFF_FOR = np.array([.2, .2, .5])
         self.P_COEFF_TOR = np.array([70000., 70000., 60000.])
         self.I_COEFF_TOR = np.array([.0, .0, 500.])
         self.D_COEFF_TOR = np.array([20000., 20000., 12000.])
+        
+        # Adjust PID gains for heavier SWARM_DRONE (900g vs 27g = 33x heavier)
+        if self.DRONE_MODEL == DroneModel.SWARM_DRONE:
+            self.P_COEFF_FOR = np.array([2.3, 2.3, 7.1])        # ~5.7x higher for position
+            self.I_COEFF_FOR = np.array([0.3, 0.3, 0.3])        # Higher integral
+            self.D_COEFF_FOR = np.array([1.1, 1.1, 2.9])        # Higher derivative  
+            self.P_COEFF_TOR = np.array([2300000., 2300000., 2000000.])  # ~33x higher for attitude
+            self.I_COEFF_TOR = np.array([0.0, 0.0, 16500.])     # Scale yaw integral
+            self.D_COEFF_TOR = np.array([660000., 660000., 400000.])     # ~33x higher
         self.PWM2RPM_SCALE = 0.2685
         self.PWM2RPM_CONST = 4070.3
         self.MIN_PWM = 20000
