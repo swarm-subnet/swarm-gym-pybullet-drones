@@ -217,7 +217,7 @@ class BaseRLAviary(BaseAviary):
                                                         cur_vel=state[10:13],
                                                         cur_ang_vel=state[13:16],
                                                         target_pos=state[0:3], # same as the current position
-                                                        target_rpy=np.array([0,0,state[9]]), # keep current yaw
+                                                        target_rpy=np.array([0.0, 0.0, 0.0]), # lock yaw to zero by default
                                                         target_vel=self.SPEED_LIMIT * np.abs(target[3]) * v_unit_vector # target the desired velocity vector
                                                         )
                 rpm[k,:] = temp
