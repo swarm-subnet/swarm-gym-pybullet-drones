@@ -93,6 +93,7 @@ class BaseRLAviary(BaseAviary):
         #### Set a limit on the maximum target speed ###############
         if act == ActionType.VEL:
             self.SPEED_LIMIT = 0.03 * self.MAX_SPEED_KMH * (1000/3600)
+            self.MAX_YAW_RATE = np.pi / 2.0
 
     ################################################################################
 
@@ -135,10 +136,12 @@ class BaseRLAviary(BaseAviary):
         Returns
         -------
         spaces.Box
-            A Box of size NUM_DRONES x 4, 3, or 1, depending on the action type.
+            A Box of size NUM_DRONES x 5 (VEL), 4 (RPM), 3 (PID), or 1, depending on the action type.
 
         """
-        if self.ACT_TYPE in [ActionType.RPM, ActionType.VEL]:
+        if self.ACT_TYPE == ActionType.VEL:
+            size = 5
+        elif self.ACT_TYPE == ActionType.RPM:
             size = 4
         elif self.ACT_TYPE==ActionType.PID:
             size = 3
@@ -211,14 +214,31 @@ class BaseRLAviary(BaseAviary):
                     v_unit_vector = target[0:3] / np.linalg.norm(target[0:3])
                 else:
                     v_unit_vector = np.zeros(3)
+                
+                cur_rpy = p.getEulerFromQuaternion(state[3:7])
+                cur_yaw = cur_rpy[2]
+                
+                if len(target) >= 5:
+                    target_yaw_normalized = np.clip(target[4], -1.0, 1.0)
+                    target_yaw = target_yaw_normalized * np.pi
+                    
+                    max_yaw_change = getattr(self, 'MAX_YAW_RATE', np.pi / 2.0) * self.CTRL_TIMESTEP
+                    yaw_diff = target_yaw - cur_yaw
+                    yaw_diff = np.arctan2(np.sin(yaw_diff), np.cos(yaw_diff))
+                    
+                    if abs(yaw_diff) > max_yaw_change:
+                        target_yaw = cur_yaw + np.sign(yaw_diff) * max_yaw_change
+                else:
+                    target_yaw = cur_yaw
+                
                 temp, _, _ = self.ctrl[k].computeControl(control_timestep=self.CTRL_TIMESTEP,
                                                         cur_pos=state[0:3],
                                                         cur_quat=state[3:7],
                                                         cur_vel=state[10:13],
                                                         cur_ang_vel=state[13:16],
-                                                        target_pos=state[0:3], # same as the current position
-                                                        target_rpy=np.array([0.0, 0.0, 0.0]), # lock yaw to zero by default
-                                                        target_vel=self.SPEED_LIMIT * np.abs(target[3]) * v_unit_vector # target the desired velocity vector
+                                                        target_pos=state[0:3],
+                                                        target_rpy=np.array([0.0, 0.0, target_yaw]),
+                                                        target_vel=self.SPEED_LIMIT * np.abs(target[3]) * v_unit_vector
                                                         )
                 rpm[k,:] = temp
             elif self.ACT_TYPE == ActionType.ONE_D_RPM:
@@ -265,7 +285,10 @@ class BaseRLAviary(BaseAviary):
             act_lo = -1
             act_hi = +1
             for i in range(self.ACTION_BUFFER_SIZE):
-                if self.ACT_TYPE in [ActionType.RPM, ActionType.VEL]:
+                if self.ACT_TYPE == ActionType.VEL:
+                    obs_lower_bound = np.hstack([obs_lower_bound, np.array([[act_lo,act_lo,act_lo,act_lo,act_lo] for i in range(self.NUM_DRONES)])])
+                    obs_upper_bound = np.hstack([obs_upper_bound, np.array([[act_hi,act_hi,act_hi,act_hi,act_hi] for i in range(self.NUM_DRONES)])])
+                elif self.ACT_TYPE == ActionType.RPM:
                     obs_lower_bound = np.hstack([obs_lower_bound, np.array([[act_lo,act_lo,act_lo,act_lo] for i in range(self.NUM_DRONES)])])
                     obs_upper_bound = np.hstack([obs_upper_bound, np.array([[act_hi,act_hi,act_hi,act_hi] for i in range(self.NUM_DRONES)])])
                 elif self.ACT_TYPE==ActionType.PID:
