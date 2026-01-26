@@ -196,7 +196,7 @@ class BaseRLAviary(BaseAviary):
                 cur_yaw = cur_rpy[2]
                 
                 if len(target) >= 5:
-                    target_yaw_normalized = np.clip(target[4], -1.0, 1.0)
+                    target_yaw_normalized = np.clip(float(target[4]), -1.0, 1.0)
                     target_yaw = target_yaw_normalized * np.pi
                     
                     max_yaw_change = getattr(self, 'MAX_YAW_RATE', np.pi / 2.0) * self.CTRL_TIMESTEP
