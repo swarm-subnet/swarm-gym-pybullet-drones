@@ -1,11 +1,12 @@
 [tool.poetry]
-name = "gym-pybullet-drones"
+name = "swarm-gym-pybullet-drones"
 version = "2.0.0"
-description = "PyBullet Gym environments for single and multi-agent reinforcement learning of quadcopter control"
-authors = ["Jacopo Panerati <jacopo.panerati@utoronto.ca>"]
+description = "Swarm quadrotor RL environments built on PyBullet with a custom drone setup, 5D yaw control, and benchmark-oriented flight behavior"
+authors = ["Swarm Subnet"]
 license = "MIT"
 readme = "pypi_description.md"
-repository = "https://github.com/utiasDSL/gym-pybullet-drones"
+repository = "https://github.com/swarm-subnet/swarm-gym-pybullet-drones"
+homepage = "https://github.com/swarm-subnet/swarm-gym-pybullet-drones"
 packages = [
     { include = "gym_pybullet_drones" }
 ]
@@ -17,7 +18,7 @@ scipy = "^1.10"
 transforms3d = "^0.4.1"
 matplotlib = "^3.7"
 pytest = ">=7.3, <9.0"
-pybullet = "^3.2.5"
+swarm-pybullet = "^3.2.7"
 gymnasium = "~=0.28"
 stable-baselines3 = "^2.0.0"
 
