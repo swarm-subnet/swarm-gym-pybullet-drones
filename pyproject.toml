@@ -18,7 +18,7 @@ scipy = "^1.10"
 transforms3d = "^0.4.1"
 matplotlib = "^3.7"
 pytest = ">=7.3, <9.0"
-swarm-pybullet = ">=3.2.7.0,<4.0.0"
+swarm-pybullet = ">=2.0.0.1,<4.0.0"
 gymnasium = "~=0.28"
 stable-baselines3 = "^2.0.0"
 
