@@ -75,7 +75,6 @@ class DSLPIDControl(BaseControl):
                                     [.5, .5, -1],
                                     [.5, -.5,  1]
                                     ])
-        self._gravity_vec = np.array([0., 0., self.GRAVITY])
         self.reset()
 
     ################################################################################
@@ -214,7 +213,7 @@ class DSLPIDControl(BaseControl):
         #### PID target thrust #####################################
         target_thrust = np.multiply(self.P_COEFF_FOR, pos_e) \
                         + np.multiply(self.I_COEFF_FOR, self.integral_pos_e) \
-                        + np.multiply(self.D_COEFF_FOR, vel_e) + self._gravity_vec
+                        + np.multiply(self.D_COEFF_FOR, vel_e) + np.array([0, 0, self.GRAVITY])
         scalar_thrust = max(0., np.dot(target_thrust, cur_rotation[:,2]))
         thrust = (math.sqrt(scalar_thrust / (4*self.KF)) - self.PWM2RPM_CONST) / self.PWM2RPM_SCALE
         target_z_ax = target_thrust / np.linalg.norm(target_thrust)
