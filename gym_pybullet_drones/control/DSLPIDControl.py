@@ -144,19 +144,22 @@ class DSLPIDControl(BaseControl):
 
         """
         self.control_counter += 1
+        cur_rotation = np.array(p.getMatrixFromQuaternion(cur_quat)).reshape(3, 3)
         thrust, computed_target_rpy, pos_e = self._dslPIDPositionControl(control_timestep,
                                                                          cur_pos,
                                                                          cur_quat,
                                                                          cur_vel,
                                                                          target_pos,
                                                                          target_rpy,
-                                                                         target_vel
+                                                                         target_vel,
+                                                                         cur_rotation
                                                                          )
         rpm = self._dslPIDAttitudeControl(control_timestep,
                                           thrust,
                                           cur_quat,
                                           computed_target_rpy,
-                                          target_rpy_rates
+                                          target_rpy_rates,
+                                          cur_rotation
                                           )
         cur_rpy = p.getEulerFromQuaternion(cur_quat)
         return rpm, pos_e, computed_target_rpy[2] - cur_rpy[2]
@@ -170,7 +173,8 @@ class DSLPIDControl(BaseControl):
                                cur_vel,
                                target_pos,
                                target_rpy,
-                               target_vel
+                               target_vel,
+                               cur_rotation
                                ):
         """DSL's CF2.x PID position control.
 
@@ -201,7 +205,6 @@ class DSLPIDControl(BaseControl):
             The current position error.
 
         """
-        cur_rotation = np.array(p.getMatrixFromQuaternion(cur_quat)).reshape(3, 3)
         pos_e = target_pos - cur_pos
         vel_e = target_vel - cur_vel
         self.integral_pos_e = self.integral_pos_e + pos_e*control_timestep
@@ -215,7 +218,8 @@ class DSLPIDControl(BaseControl):
         thrust = (math.sqrt(scalar_thrust / (4*self.KF)) - self.PWM2RPM_CONST) / self.PWM2RPM_SCALE
         target_z_ax = target_thrust / np.linalg.norm(target_thrust)
         target_x_c = np.array([math.cos(target_rpy[2]), math.sin(target_rpy[2]), 0])
-        target_y_ax = np.cross(target_z_ax, target_x_c) / np.linalg.norm(np.cross(target_z_ax, target_x_c))
+        zx_cross = np.cross(target_z_ax, target_x_c)
+        target_y_ax = zx_cross / np.linalg.norm(zx_cross)
         target_x_ax = np.cross(target_y_ax, target_z_ax)
         target_rotation = (np.vstack([target_x_ax, target_y_ax, target_z_ax])).transpose()
         #### Target rotation #######################################
@@ -231,7 +235,8 @@ class DSLPIDControl(BaseControl):
                                thrust,
                                cur_quat,
                                target_euler,
-                               target_rpy_rates
+                               target_rpy_rates,
+                               cur_rotation
                                ):
         """DSL's CF2.x PID attitude control.
 
@@ -254,7 +259,6 @@ class DSLPIDControl(BaseControl):
             (4,1)-shaped array of integers containing the RPMs to apply to each of the 4 motors.
 
         """
-        cur_rotation = np.array(p.getMatrixFromQuaternion(cur_quat)).reshape(3, 3)
         cur_rpy = np.array(p.getEulerFromQuaternion(cur_quat))
         target_quat = (Rotation.from_euler('XYZ', target_euler, degrees=False)).as_quat()
         w,x,y,z = target_quat
